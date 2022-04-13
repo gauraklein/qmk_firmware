@@ -19,51 +19,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include QMK_KEYBOARD_H
 #include <stdio.h>
 
-// Define a type for as many tap dance states as you need
-typedef enum {
-    TD_NONE,
-    TD_UNKNOWN,
-    TD_SINGLE_TAP,
-    TD_SINGLE_HOLD,
-} td_state_t;
-
-typedef struct {
-    bool is_press_action;
-    td_state_t state;
-} td_tap_t;
-
-enum {
-    D_LAYR, // Our custom tap dance key; add any other tap dance keys to this enum 
-    F_LAYR,
-    CAP_LAYR,
+enum layers {
+    BASE,
+    ARROWS,
+    SYMBOLS,
+    NUMPAD
 };
 
-// Declare the functions to be used with your tap dance key(s)
-
-// Function associated with all tap dances
-td_state_t cur_dance(qk_tap_dance_state_t *state);
-
-// Functions associated with individual tap dances
-void ql_finished(qk_tap_dance_state_t *state, void *user_data);
-void ql_reset(qk_tap_dance_state_t *state, void *user_data);
-
-// END tapdance code
-
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-  [0] = LAYOUT_split_3x6_3(
+  [BASE] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
        KC_ESC,    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                         KC_Y,    KC_U,    KC_I,    KC_O,   KC_P,  KC_BSPC,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_TAB,  KC_A,  KC_S, TD(D_LAYR), TD(F_LAYR), KC_G,                         KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN, KC_QUOT,
+      KC_TAB,  KC_A,  KC_S, LT(NUMPAD, KC_D), LT(ARROWS, KC_F), KC_G,                         KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN, KC_QUOT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LSFT,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH,  KC_RSFT,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LCTL,   KC_SPC,  KC_LGUI,  KC_ENT,   KC_SPC, TD(CAP_LAYR) 
+                                          KC_LCTL,   KC_SPC,  KC_LGUI,  KC_ENT,   KC_SPC, LT(SYMBOLS, KC_CAPS) 
                                       //`--------------------------'  `--------------------------'
 
   ),
 
-  [1] = LAYOUT_split_3x6_3(
+  [ARROWS] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
        KC_TAB,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                         KC_6,    KC_7,    KC_8,    KC_9,    KC_0, KC_BSPC,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -75,7 +52,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                       //`--------------------------'  `--------------------------'
   ),
 
-  [2] = LAYOUT_split_3x6_3(
+  [SYMBOLS] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
        KC_TAB, KC_EXLM,   KC_AT, KC_HASH,  KC_DLR, KC_PERC,                      KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSPC,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -87,7 +64,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                       //`--------------------------'  `--------------------------'
   ),
 
-  [3] = LAYOUT_split_3x6_3(
+  [NUMPAD] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
         RESET, _______, _______, _______, _______, _______,                      KC_EQL, KC_7, KC_8, KC_9, _______, _______,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -186,109 +163,6 @@ void oled_render_logo(void) {
         0};
     oled_write_P(crkbd_logo, false);
 }
-
-// BEGIN TAP DANCE CODE
-// Determine the current tap dance state
-td_state_t cur_dance(qk_tap_dance_state_t *state) {
-    if (state->count == 1) {
-        if (!state->pressed) return TD_SINGLE_TAP;
-        else return TD_SINGLE_HOLD;
-    } else return TD_UNKNOWN;
-}
-
-// Initialize tap structure associated with example tap dance key
-static td_tap_t d_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
-
-// Functions that control what our tap dance key does
-void d_finished(qk_tap_dance_state_t *state, void *user_data) {
-    d_tap_state.state = cur_dance(state);
-    switch (d_tap_state.state) {
-        case TD_SINGLE_TAP:
-            tap_code(KC_D);
-            break;
-        case TD_SINGLE_HOLD:
-            layer_on(3);
-            break;
-        default:
-            break;
-    }
-}
-
-void d_reset(qk_tap_dance_state_t *state, void *user_data) {
-    // If the key was held down and now is released then switch off the layer
-    if (d_tap_state.state == TD_SINGLE_HOLD) {
-        layer_off(3);
-    }
-    d_tap_state.state = TD_NONE;
-}
-// Initialize tap structure associated with example tap dance key
-static td_tap_t f_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
-
-void f_finished(qk_tap_dance_state_t *state, void *user_data) {
-    f_tap_state.state = cur_dance(state);
-    switch (f_tap_state.state) {
-        case TD_SINGLE_TAP:
-            tap_code(KC_F);
-            break;
-        case TD_SINGLE_HOLD:
-            layer_on(1);
-            break;
-        default:
-            break;
-    }
-}
-
-void f_reset(qk_tap_dance_state_t *state, void *user_data) {
-    // If the key was held down and now is released then switch off the layer
-    if (f_tap_state.state == TD_SINGLE_HOLD) {
-        layer_off(1);
-    }
-    f_tap_state.state = TD_NONE;
-}
-
-// Initialize tap structure associated with example tap dance key
-static td_tap_t cap_tap_state = {
-    .is_press_action = true,
-    .state = TD_NONE
-};
-
-void cap_finished(qk_tap_dance_state_t *state, void *user_data) {
-    cap_tap_state.state = cur_dance(state);
-    switch (cap_tap_state.state) {
-        case TD_SINGLE_TAP:
-            tap_code(KC_CAPS);
-            break;
-        case TD_SINGLE_HOLD:
-            layer_on(2);
-            break;
-        default:
-            break;
-    }
-}
-
-void cap_reset (qk_tap_dance_state_t *state, void *user_data) {
-    // If the key was held down and now is released then switch off the layer
-    if (cap_tap_state.state == TD_SINGLE_HOLD) {
-        layer_off(2);
-    }
-    cap_tap_state.state = TD_NONE;
-}
-
-// Associate our tap dance key with its functionality
-qk_tap_dance_action_t tap_dance_actions[] = {
-    [D_LAYR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, d_finished, d_reset),
-    [F_LAYR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, f_finished, f_reset),
-    [CAP_LAYR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, cap_finished, cap_reset),
-};
-
-
-// END TAP DANCE CODE
 
 bool oled_task_user(void) {
     if (is_keyboard_master()) {
