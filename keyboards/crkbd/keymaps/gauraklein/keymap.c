@@ -83,9 +83,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #ifdef OLED_ENABLE
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
-//   if (!is_keyboard_master()) {
-    // return OLED_ROTATION_180;  // flips the display 180 degrees if offhand
-//   }
+  if (!is_keyboard_master()) {
+    return OLED_ROTATION_270;  // flips the display 180 degrees if offhand
+  }
   return OLED_ROTATION_270;
 }
 
@@ -95,7 +95,6 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 #define L_ADJUST 8
 
 void oled_render_layer_state(void) {
-    // oled_write_P(PSTR("Layer: "), false);
     switch (layer_state) {
         case L_BASE:
             oled_write_ln_P(PSTR("BASE"), false);
@@ -302,8 +301,9 @@ bool oled_task_user(void) {
      current_wpm   = get_current_wpm();
     if (is_keyboard_master()) {
         oled_render_layer_state();
-        oled_render_keylog();
+        render_luna(0, 13);
     } else {
+     oled_write_P(PSTR("CRKBD"), false);
      render_luna(0, 13);
     }
     return false;
