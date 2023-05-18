@@ -5,3 +5,4 @@ WPM_ENABLE = yes
 OLED_DRIVER_ENABLE = yes
 BOOTLOADER = atmel-dfu
 RGBLIGHT_ENABLE = no
+
