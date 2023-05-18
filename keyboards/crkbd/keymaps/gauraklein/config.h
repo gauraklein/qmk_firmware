@@ -34,3 +34,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OLED_FONT_H "keyboards/crkbd/lib/glcdfont.c"
 #define IGNORE_MOD_TAP_INTERRUPT
 #define TAPPING_TERM 175
+#define SPLIT_OLED_ENABLE
+#define SPLIT_WPM_ENABLE
